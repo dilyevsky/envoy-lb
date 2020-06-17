@@ -1,0 +1,40 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+static_resources:
+  listeners:
+  - name: rtmp-edge
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 1935
+    filter_chains:
+    - filters:
+      - name: envoy.tcp_proxy
+        config:
+          stat_prefix: ingress_tcp
+          cluster: nginx-rtmp
+          access_log:
+            - name: envoy.file_access_log
+              config:
+                path: /tmp/access.log
+
+  clusters:
+  - name: nginx-rtmp
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: nginx-rtmp
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 35.230.106.204
+                port_value: 1935
